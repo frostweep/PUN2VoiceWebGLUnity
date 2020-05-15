@@ -75,7 +75,7 @@ namespace FrostweepGames.PhotonWebVoiceWrapper
 
         public void NetworkEventReceivedHandler(EventData photonEvent)
         {
-            if (photonEvent.Code == 0)
+            if (photonEvent.Code == eventId)
             {
                 listener.HandleRawData((byte[])photonEvent.CustomData);
             }
