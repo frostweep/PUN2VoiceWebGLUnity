@@ -58,3 +58,10 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+
+# Custom ignore
+/Assets/FrostweepGames/
+/Assets/FrostweepGames.meta
+/Assets/Photon/
+/Assets/Photon.meta
+
