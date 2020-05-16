@@ -3,49 +3,38 @@ using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
 
-namespace FrostweepGames.PhotonWebVoiceWrapper
+namespace FrostweepGames.WebGLPUNVoice
 {
     public class PhotonConnector : MonoBehaviour
     {
-        public static PhotonConnector Instance { get; private set; }
-
         public Lobby lobby;
-
-        public Listener listener;
-        public Recorder recorder;
-
-        public byte eventId = 199;
 
         private void Awake()
         {
-            Instance = this;
-
             lobby.ConnectedEvent += ConnectedEventHandler;
             lobby.RoomListUpdatedEvent += RoomListUpdatedEventHandler;
             lobby.JoinedRoomEvent += JoinedRoomEventHandler;
-
-            PhotonNetwork.NetworkingClient.EventReceived += NetworkEventReceivedHandler;
         }
 
         private void OnDestroy()
         {
-            Instance = null;
-
             lobby.ConnectedEvent -= ConnectedEventHandler;
             lobby.RoomListUpdatedEvent -= RoomListUpdatedEventHandler;
             lobby.JoinedRoomEvent -= JoinedRoomEventHandler;
-
-            PhotonNetwork.NetworkingClient.EventReceived -= NetworkEventReceivedHandler;
         }
 
         private void Start()
         {
             lobby.Connect((SystemInfo.deviceUniqueIdentifier + Random.Range(0, 9999999)).GetHashCode().ToString());
+
+            Debug.Log("CONNECT TO SERVER");
         }
 
         private void ConnectedEventHandler()
         {
             lobby.JoinLobby();
+
+            Debug.Log("ConnectedEventHandler");
         }
 
         private void RoomListUpdatedEventHandler()
@@ -62,23 +51,7 @@ namespace FrostweepGames.PhotonWebVoiceWrapper
 
         private void JoinedRoomEventHandler()
         {
-            listener.StartListen();
-            recorder.readyToRecord = true;
-        }
-
-        public void SendDataOverNetwork(byte[] array)
-        {
-            RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.Others };
-            SendOptions sendOptions = new SendOptions { Reliability = true };
-            PhotonNetwork.RaiseEvent(eventId, array, raiseEventOptions, sendOptions);
-        }
-
-        public void NetworkEventReceivedHandler(EventData photonEvent)
-        {
-            if (photonEvent.Code == 0)
-            {
-                listener.HandleRawData((byte[])photonEvent.CustomData);
-            }
+            Debug.Log("JoinedRoomEventHandler");
         }
     }
 }

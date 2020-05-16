@@ -4,7 +4,7 @@ using Photon.Realtime;
 using System;
 using ExitGames.Client.Photon;
 
-namespace FrostweepGames.PhotonWebVoiceWrapper
+namespace FrostweepGames.WebGLPUNVoice
 {
 	public class Lobby : MonoBehaviourPunCallbacks, ILobbyCallbacks
 	{

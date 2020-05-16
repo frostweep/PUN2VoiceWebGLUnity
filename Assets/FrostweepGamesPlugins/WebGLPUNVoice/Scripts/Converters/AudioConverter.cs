@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FrostweepGames.PhotonWebVoiceWrapper
+namespace FrostweepGames.WebGLPUNVoice
 {
-    public class AudioConverter
+    public sealed class AudioConverter
     {
         public static byte[] FloatToByte(List<float> samples)
         {
