@@ -19,8 +19,7 @@ Demo scene included.
 -
 
 ## Known issues
-- Sound loop issue when record ended
-- Possible network issues
+- 
 
 ## Contacts
 - [Discord](https://discord.gg/TZdhnWy)
