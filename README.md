@@ -3,7 +3,7 @@ This is official Github page of WebGL implementation of voice chat by using PUN 
 This project is an alpha version and still in progress so you could see issues and it could work unstable.
 
 ## Requirements
-- Unity 2018.x or higher
+- Unity 2019.x or higher
 - Photon PUN Classic or Photon PUN 2 as a network solution
 
 ## Basic usage
