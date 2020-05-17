@@ -1,24 +1,40 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 namespace FrostweepGames.WebGLPUNVoice
 {
+	/// <summary>
+	/// Basic listener system for voice chat
+	/// </summary>
 	public class Listener : MonoBehaviour
 	{
+		public event Action SpeakersUpdatedEvent;
+
+		public event Action<int> SpeakerLeavedByInactiveEvent;
+
 		private object _lock = new object();
 
 		private bool _listening;
 
-		private Dictionary<int, Speaker> _speakers;
-
+		/// <summary>
+		/// Sets if listening of netowrk events should be started at awake
+		/// </summary>
 		public bool startListenAtAwake;
+
+		/// <summary>
+		/// Returns key - value pair : id of a speaker and its object instance
+		/// </summary>
+		public Dictionary<int, Speaker> Speakers { get; private set; }
+
+		/// <summary>
+		/// Returns info about does speakers muted or not
+		/// </summary>
+		public bool IsSpeakersMuted { get; private set; } = false;
 
 		private void Awake()
 		{
-			_speakers = new Dictionary<int, Speaker>();
-
-			// Subscribe on PUN events 
-			Photon.Pun.PhotonNetwork.NetworkingClient.EventReceived += NetworkEventReceivedHandler;
+			Speakers = new Dictionary<int, Speaker>();
 
 			if(startListenAtAwake)
 			{
@@ -30,9 +46,6 @@ namespace FrostweepGames.WebGLPUNVoice
 		{
 			StopListen();
 
-			// Unsubscribe from PUN events 
-			Photon.Pun.PhotonNetwork.NetworkingClient.EventReceived += NetworkEventReceivedHandler;
-
 			ResetSpeakers();
 		}
 
@@ -43,23 +56,56 @@ namespace FrostweepGames.WebGLPUNVoice
 
 			lock (_lock)
 			{
-				foreach (var speaker in _speakers)
+				foreach (var speaker in Speakers)
 				{
 					speaker.Value.Update();
 				}
 			}
+
+			CleanInactiveSpeakers();
 		}
 
+		/// <summary>
+		/// Resets and destroys all active speakers
+		/// </summary>
 		private void ResetSpeakers()
 		{
 			lock (_lock)
 			{
-				foreach (var speaker in _speakers)
+				foreach (var speaker in Speakers)
 				{
 					speaker.Value.Dispose();
 				}
-				_speakers.Clear();
+				Speakers.Clear();
 			}
+		}
+
+		/// <summary>
+		/// cleans inactive speakers
+		/// </summary>
+		private void CleanInactiveSpeakers()
+		{
+			lock (_lock)
+			{
+				List<int> inactive = new List<int>();
+
+				foreach (var speaker in Speakers)
+				{
+					if(!speaker.Value.IsActive)
+					{
+						inactive.Add(speaker.Key);
+					}
+				}
+
+				foreach(int id in inactive)
+				{
+					Speakers[id].Dispose();
+					Speakers.Remove(id);
+				}
+				inactive.Clear();
+			}
+
+			SpeakersUpdatedEvent?.Invoke();
 		}
 
 		/// <summary>
@@ -67,7 +113,7 @@ namespace FrostweepGames.WebGLPUNVoice
 		/// </summary>
 		/// <param name="id">unique id of a remote client</param>
 		/// <param name="bytes">array of received data (samples)</param>
-		private void HandleRawData(int id, byte[] bytes)
+		private void HandleRawData(int id, string name, byte[] bytes)
 		{
 			if (!_listening)
 				return;
@@ -76,14 +122,18 @@ namespace FrostweepGames.WebGLPUNVoice
 			{
 				Speaker speaker;
 
-				if (!_speakers.ContainsKey(id))
+				if (!Speakers.ContainsKey(id))
 				{
-					speaker = new Speaker(id, transform);
-					_speakers.Add(id, speaker);
+					speaker = new Speaker(id, name, transform);
+					speaker.IsMute = IsSpeakersMuted;
+
+					Speakers.Add(id, speaker);
+
+					SpeakersUpdatedEvent?.Invoke();
 				}
 				else
 				{
-					speaker = _speakers[id];
+					speaker = Speakers[id];
 				}
 
 				speaker.HandleRawData(bytes);
@@ -98,27 +148,44 @@ namespace FrostweepGames.WebGLPUNVoice
 		{
 			if (photonEvent.Code == Constants.VoiceEventCode)
 			{
-				HandleRawData(photonEvent.Sender, (byte[])photonEvent.CustomData);
+				// TODO: provide corrent sender name
+				HandleRawData(photonEvent.Sender, "Speaker " + photonEvent.Sender, (byte[])photonEvent.CustomData);
 			}
 		}
 
+		/// <summary>
+		/// Starts listening of network events
+		/// </summary>
 		public void StartListen()
 		{
 			if (_listening)
 				return;
 
+			// Subscribe on PUN events 
+			Photon.Pun.PhotonNetwork.NetworkingClient.EventReceived += NetworkEventReceivedHandler;
+
 			_listening = true;
 		}
 
+		/// <summary>
+		/// Stops listening of network events
+		/// </summary>
 		public void StopListen()
 		{
 			if (!_listening)
 				return;
 
+			// Unsubscribe from PUN events 
+			Photon.Pun.PhotonNetwork.NetworkingClient.EventReceived -= NetworkEventReceivedHandler;
+
 			_listening = false;
 			ResetSpeakers();
 		}
 
+		/// <summary>
+		/// Disposes speaker by client id
+		/// </summary>
+		/// <param name="id"></param>
 		public void SpeakerLeave(int id)
 		{
 			if (!_listening)
@@ -126,10 +193,31 @@ namespace FrostweepGames.WebGLPUNVoice
 
 			lock (_lock)
 			{
-				if (_speakers.ContainsKey(id))
+				if (Speakers.ContainsKey(id))
 				{
-					_speakers[id].Dispose();
-					_speakers.Remove(id);
+					Speakers[id].Dispose();
+					Speakers.Remove(id);
+
+					SpeakerLeavedByInactiveEvent?.Invoke(id);
+				}
+			}
+
+			SpeakersUpdatedEvent?.Invoke();
+		}
+
+		/// <summary>
+		/// Sets status of mute of all active speakers 
+		/// </summary>
+		/// <param name="mute"></param>
+		public void SetMuteStatus(bool mute)
+		{
+			IsSpeakersMuted = mute;
+
+			lock (_lock)
+			{
+				foreach (var speaker in Speakers)
+				{
+					speaker.Value.IsMute = mute;
 				}
 			}
 		}

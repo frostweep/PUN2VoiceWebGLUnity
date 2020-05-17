@@ -2,11 +2,30 @@
 using FrostweepGames.Plugins.Native;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace FrostweepGames.WebGLPUNVoice
 {
+	/// <summary>
+	/// Basic record system for voice chat
+	/// </summary>
 	public class Recorder : MonoBehaviour
 	{
+		/// <summary>
+		/// Throws when record successfully started
+		/// </summary>
+		public event Action RecordStartedEvent;
+
+		/// <summary>
+		/// Throws when record successfully ended
+		/// </summary>
+		public event Action RecordEndedEvent;
+
+		/// <summary>
+		/// Throws when record starting failed
+		/// </summary>
+		public event Action<string> RecordFailedEvent;
+
 		/// <summary>
 		/// Last cached sample position
 		/// </summary>
@@ -42,11 +61,6 @@ namespace FrostweepGames.WebGLPUNVoice
 		/// </summary>
 		public bool recording = false;
 
-		#region DEBUG
-		public KeyCode recordingKey = KeyCode.R;
-		#endregion
-
-
 		/// <summary>
 		/// Initializes buffer, refreshes microphones list and selects first microphone device if exists
 		/// </summary>
@@ -68,17 +82,6 @@ namespace FrostweepGames.WebGLPUNVoice
 		private void Update()
 		{
 			ProcessRecording();
-
-			#region DEBUG
-			if (Input.GetKeyDown(recordingKey))
-			{
-				StartRecord();
-			}
-			else if (Input.GetKeyUp(recordingKey))
-			{
-				StopRecording();
-			}
-			#endregion
 		}
 
 		/// <summary>
@@ -86,15 +89,17 @@ namespace FrostweepGames.WebGLPUNVoice
 		/// </summary>
 		private void ProcessRecording()
 		{
-			if (recording)
+			int currentPosition = CustomMicrophone.GetPosition(_microphoneDevice);
+
+			if (recording || currentPosition != _lastPosition)
 			{
 				float[] array = new float[Constants.RecordingTime * Constants.SampleRate];
 				CustomMicrophone.GetRawData(ref array, _workingClip);
 
-				if (_lastPosition != CustomMicrophone.GetPosition(_microphoneDevice) && array.Length > 0)
+				if (_lastPosition != currentPosition && array.Length > 0)
 				{
 					int lastPosition = _lastPosition;
-					_lastPosition = CustomMicrophone.GetPosition(_microphoneDevice);
+					_lastPosition = currentPosition;
 
 					if (lastPosition > _lastPosition)
 					{
@@ -152,19 +157,22 @@ namespace FrostweepGames.WebGLPUNVoice
 		public void StartRecord()
 		{
 			if (CustomMicrophone.IsRecording(_microphoneDevice) || !CustomMicrophone.HasConnectedMicrophoneDevices())
+			{
+				RecordFailedEvent?.Invoke("record already started or no microphone device conencted");
 				return;
+			}
 
 			recording = true;
 
 			_workingClip = CustomMicrophone.Start(_microphoneDevice, true, Constants.RecordingTime, Constants.SampleRate);
 
-			Debug.Log("START RECORD");
+			RecordStartedEvent?.Invoke();
 		}
 
 		/// <summary>
 		/// Stops recording of microphone
 		/// </summary>
-		public void StopRecording()
+		public void StopRecord()
 		{
 			if (!CustomMicrophone.IsRecording(_microphoneDevice))
 				return;
@@ -181,7 +189,7 @@ namespace FrostweepGames.WebGLPUNVoice
 				Destroy(_workingClip);
 			}
 
-			Debug.Log("STOP RECORD");
+			RecordEndedEvent?.Invoke();
 		}
 	}
 }
