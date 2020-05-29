@@ -1,4 +1,4 @@
-# Unity WebGL PUN Voice Chat
+# Unity WebGL PUN - Voice Chat
 This is official Github page of WebGL implementation of voice chat by using PUN 2 server solution. </br>
 
 ## Requirements
