@@ -71,7 +71,7 @@ namespace FrostweepGames.WebGLPUNVoice
         {
             try
             {
-                _audioClipReadyToUse = _buffer.data.Count >= Constants.SampleRate * Constants.RecordingTime;
+                _audioClipReadyToUse = _buffer.data.Count > 0;
 
                 if (Playing)
                 {
@@ -94,21 +94,26 @@ namespace FrostweepGames.WebGLPUNVoice
                         {
                             chunk = _buffer.data.GetRange(0, Constants.SampleRate);
                             _buffer.data.RemoveRange(0, Constants.SampleRate);
+
+                            _delay = 1f;
                         }
                         else
                         {
-                            chunk = _buffer.data;
+                            int bufferSize = _buffer.data.Count;
+
+                            chunk = new List<float>();
+                            chunk.AddRange(_buffer.data);
                             _buffer.data.Clear();
-                            for (int i = chunk.Count; i < Constants.SampleRate; i++)
-                            {
+
+                            for (int i = bufferSize; i < Constants.SampleRate; i++)
                                 chunk.Add(0);
-                            }
+
+                            _delay = (float)bufferSize / (float)Constants.SampleRate;
                         }
 
                         _workingClip.SetData(chunk.ToArray(), 0);
                         _source.Play();
 
-                        _delay = (float)Constants.SampleRate / (float)chunk.Count;
                         Playing = true;
                     }
 

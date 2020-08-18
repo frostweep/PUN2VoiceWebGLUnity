@@ -62,6 +62,11 @@ namespace FrostweepGames.WebGLPUNVoice
 		public bool recording = false;
 
 		/// <summary>
+		/// Saves last position of mic when it stops
+		/// </summary>
+		private int _stopRecordPosition = -1;
+
+		/// <summary>
 		/// Initializes buffer, refreshes microphones list and selects first microphone device if exists
 		/// </summary>
 		private void Start()
@@ -91,6 +96,10 @@ namespace FrostweepGames.WebGLPUNVoice
 		{
 			int currentPosition = CustomMicrophone.GetPosition(_microphoneDevice);
 
+			// fix for end record incorrect position
+			if (_stopRecordPosition != -1)
+				currentPosition = _stopRecordPosition;
+
 			if (recording || currentPosition != _lastPosition)
 			{
 				float[] array = new float[Constants.RecordingTime * Constants.SampleRate];
@@ -98,34 +107,64 @@ namespace FrostweepGames.WebGLPUNVoice
 
 				if (_lastPosition != currentPosition && array.Length > 0)
 				{
-					int lastPosition = _lastPosition;
-					_lastPosition = currentPosition;
-
-					if (lastPosition > _lastPosition)
+					if (_lastPosition > currentPosition)
 					{
-						_buffer.AddRange(array.ToList().GetRange(lastPosition, array.Length - lastPosition));
-						_buffer.AddRange(array.ToList().GetRange(0, _lastPosition));
+						_buffer.AddRange(GetChunk(array, _lastPosition, array.Length - _lastPosition));
+						_buffer.AddRange(GetChunk(array, 0, currentPosition));
 					}
 					else
 					{
-						_buffer.AddRange(array.ToList().GetRange(lastPosition, _lastPosition - lastPosition));
+						_buffer.AddRange(GetChunk(array, _lastPosition, currentPosition - _lastPosition));
+					}
+
+					// sends data chunky
+					if (_buffer.Count >= Constants.ChunkSize)
+					{
+						SendDataToNetwork(_buffer.GetRange(0, Constants.ChunkSize));
+						_buffer.RemoveRange(0, Constants.ChunkSize);
 					}
 				}
 
-				if (_buffer.Count >= Constants.ChunkSize)
-				{
-					SendDataToNetwork(_buffer.GetRange(0, Constants.ChunkSize));
-					_buffer.RemoveRange(0, Constants.ChunkSize);
-				}
+				_lastPosition = currentPosition;
 			}
 			else
 			{
+				_lastPosition = currentPosition;
+
 				if (_buffer.Count > 0)
 				{
-					SendDataToNetwork(_buffer);
-					_buffer.Clear();
+					// sends left data chunky
+					if (_buffer.Count >= Constants.ChunkSize)
+					{
+						SendDataToNetwork(_buffer.GetRange(0, Constants.ChunkSize));
+						_buffer.RemoveRange(0, Constants.ChunkSize);
+					}
+					// sends all left data
+					else
+					{
+						SendDataToNetwork(_buffer);
+						_buffer.Clear();
+					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// Gets range from an array based on start index and length
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="data">input array</param>
+		/// <param name="index">start offset</param>
+		/// <param name="length">length of output array and how many items will be copied from initial array</param>
+		/// <returns></returns>
+		private T[] GetChunk<T>(T[] data, int index, int length)
+		{
+			if (data.Length < index + length)
+				throw new Exception("Input array less than parameters income!");
+
+			T[] result = new T[length];
+			Array.Copy(data, index, result, 0, length);
+			return result;
 		}
 
 		/// <summary>
@@ -162,7 +201,11 @@ namespace FrostweepGames.WebGLPUNVoice
 				return;
 			}
 
+			_stopRecordPosition = -1;
+
 			recording = true;
+
+			_buffer?.Clear();
 
 			_workingClip = CustomMicrophone.Start(_microphoneDevice, true, Constants.RecordingTime, Constants.SampleRate);
 
@@ -181,6 +224,8 @@ namespace FrostweepGames.WebGLPUNVoice
 
 			if (CustomMicrophone.HasConnectedMicrophoneDevices())
 			{
+				_stopRecordPosition = CustomMicrophone.GetPosition(_microphoneDevice);
+
 				CustomMicrophone.End(_microphoneDevice);
 			}
 
