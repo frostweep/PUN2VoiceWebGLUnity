@@ -21,12 +21,14 @@ Demo scene included.
 -
 
 ## Known issues
-- 
+- delay
 
 ## Contacts
 - [Discord](https://discord.gg/TZdhnWy)
 - [Email](mailto:assets@frostweepgames.com)
 
+## Contacts
+- support of this project isnt provided. Check license file.
 
 ## Check our Ready To Use solution on Unity Asset Store
 - [Voice Pro - WebGL, Mobile, Desktop](http://u3d.as/1TkD)
