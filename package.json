@@ -1,0 +1,23 @@
+{
+    "name": "com.frostweepgames.pun2voicewebglunity",
+    "version": "1.0.0",
+    "displayName": "PUN 2 Voice WebGL Unity",
+    "description": "Provides an ability to make Voice chat in WebGL by using PUN 2 network and Microphone WebGL Library.",
+    "unity": "2018.1",
+    "keywords": [
+        "frostweep",
+        "games",
+        "frostweepgames",
+        "webgl",
+        "microphone",
+        "pun2",
+        "voice",
+        "chat",
+        "free"
+    ],
+    "author": {
+        "name": "FrostweepGames",
+        "email": "assets@frostweepgames.com",
+        "url": "https://frostweepgames.com"
+    }
+}

@@ -34,7 +34,5 @@ Demo scene included.
 - [Voice Pro - WebGL, Mobile, Desktop](http://u3d.as/1TkD)
 ![Voice Pro Screenshot](http://dl4.joxi.net/drive/2020/08/21/0017/3644/1146428/28/53b0a9d718.jpg)
 
-## Many thanks to
-- MrJocyf
-- PSYCO
-- and others
+
+[Changelog](CHANGELOG.md)
