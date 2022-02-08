@@ -74,11 +74,6 @@ namespace FrostweepGames.WebGLPUNVoice
 			_buffer = new List<float>();
 
 			RefreshMicrophones();
-
-			if (CustomMicrophone.HasConnectedMicrophoneDevices())
-			{
-				_microphoneDevice = CustomMicrophone.devices[0];
-			}
 		}
 
 		/// <summary>
@@ -188,6 +183,12 @@ namespace FrostweepGames.WebGLPUNVoice
 		public void RefreshMicrophones()
 		{
 			CustomMicrophone.RequestMicrophonePermission();
+			CustomMicrophone.RefreshMicrophoneDevices();
+
+			if (CustomMicrophone.HasConnectedMicrophoneDevices())
+			{
+				_microphoneDevice = CustomMicrophone.devices[0];
+			}
 		}
 
 		/// <summary>

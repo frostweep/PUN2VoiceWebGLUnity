@@ -78,7 +78,7 @@ namespace FrostweepGames.WebGLPUNVoice.Examples
 
         private void RefreshMicrophonesButtonOnClickHandler()
         {
-            CustomMicrophone.RequestMicrophonePermission();
+            recorder.RefreshMicrophones();
 
             microphonesDropdown.ClearOptions();
             microphonesDropdown.AddOptions(CustomMicrophone.devices.ToList());            
