@@ -23,9 +23,8 @@ Demo scene included.
 ## Known issues
 - delay
 
-
-[![Donate with PayPal](https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png)](https://www.paypal.com/donate/?hosted_button_id=NPRTNVPRBNPJW)
-
+## Donate
+[![Donate with PayPal](https://www.lifepng.com/wp-content/uploads/2020/10/5895cea4cba9841eabab606f-1.png)](https://www.paypal.com/donate/?hosted_button_id=NPRTNVPRBNPJW)
 
 ## Contacts
 - [Discord](https://discord.gg/TZdhnWy)
