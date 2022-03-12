@@ -23,6 +23,10 @@ Demo scene included.
 ## Known issues
 - delay
 
+
+[![Donate with PayPal](https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png)](https://www.paypal.com/donate/?hosted_button_id=NPRTNVPRBNPJW)
+
+
 ## Contacts
 - [Discord](https://discord.gg/TZdhnWy)
 - [Email](mailto:assets@frostweepgames.com)
