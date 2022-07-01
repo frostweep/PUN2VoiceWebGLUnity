@@ -9,7 +9,7 @@ This is a Github page of WebGL implementation of voice chat by using PUN 2 serve
 Drag&Drop *PhotonWebVoice* prefab into your scene to enable voice feature.</br>
 If you project doesnt have own room solution also drag&drop *PhotonNetworkInstance* into your scene.</br>
 To say or stop saying just click on Mic button:
-![Demo](http://dl4.joxi.net/drive/2020/06/02/0017/3644/1146428/28/b71cd5a559.jpg)
+![Demo](https://unitydemos.frostweepgames.com/pun2freechatvoiceimg.jpg)
 
 Demo scene included.
 
