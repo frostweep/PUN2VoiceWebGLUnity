@@ -35,7 +35,7 @@ Demo scene included.
 
 ## Check our Ready To Use solution on Unity Asset Store
 - [Voice Pro - WebGL, Mobile, Desktop](http://u3d.as/1TkD)
-![Voice Pro Screenshot](http://dl4.joxi.net/drive/2020/08/21/0017/3644/1146428/28/53b0a9d718.jpg)
+![Voice Pro Screenshot](https://assetstorev1-prd-cdn.unity3d.com/package-screenshot/c2194585-df23-4f59-a666-d5924607a250.webp)
 
 
 [Changelog](CHANGELOG.md)
