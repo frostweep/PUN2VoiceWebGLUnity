@@ -14,8 +14,8 @@ To say or stop saying just click on Mic button:
 Demo scene included.
 
 ## Dependencies
-- [PUN 2](https://assetstore.unity.com/packages/tools/network/pun-2-free-119922)
-- [Microphone WebGL Library](https://assetstore.unity.com/packages/tools/input-management/microphone-webgl-library-79989)
+- [PUN 2](https://assetstore.unity.com/packages/tools/network/photon-pun-2-120838?aid=1101lGsS)
+- [Microphone WebGL Library](https://assetstore.unity.com/packages/tools/input-management/microphone-pro-webgl-mobiles-desktop-79989?aid=1101lGsS)
 
 ## Troubleshooting
 -
@@ -34,7 +34,7 @@ Demo scene included.
 - support of this project isnt provided. Check license file.
 
 ## Check our Ready To Use solution on Unity Asset Store
-- [Voice Pro - WebGL, Mobile, Desktop](http://u3d.as/1TkD)
+- [Voice Pro - WebGL, Mobile, Desktop](https://assetstore.unity.com/packages/tools/input-management/voice-pro-webgl-mobile-desktop-169274?aid=1101lGsS)
 ![Voice Pro Screenshot](https://assetstorev1-prd-cdn.unity3d.com/package-screenshot/c2194585-df23-4f59-a666-d5924607a250.webp)
 
 ## Looking for WebGL only voice/video/text chat? Look at our services
