@@ -58,7 +58,7 @@ namespace FrostweepGames.WebGLPUNVoice
             _source = _selfObject.AddComponent<AudioSource>();
 
             _buffer = new Buffer();
-            _workingClip = AudioClip.Create("BufferedClip_" + Id, Constants.SampleRate * Constants.RecordingTime, 1, Constants.SampleRate, false);
+            _workingClip = AudioClip.Create("BufferedClip_" + Id, Constants.SampleRate * Constants.RecordingTime, Constants.Channels, Constants.SampleRate, false);
             _source.clip = _workingClip;
 
             IsActive = true;
@@ -90,10 +90,10 @@ namespace FrostweepGames.WebGLPUNVoice
                     {
                         List<float> chunk;
 
-                        if (_buffer.data.Count >= Constants.SampleRate)
+                        if (_buffer.data.Count >= Constants.SampleRate * Constants.Channels)
                         {
-                            chunk = _buffer.data.GetRange(0, Constants.SampleRate);
-                            _buffer.data.RemoveRange(0, Constants.SampleRate);
+                            chunk = _buffer.data.GetRange(0, Constants.SampleRate * Constants.Channels);
+                            _buffer.data.RemoveRange(0, Constants.SampleRate * Constants.Channels);
 
                             _delay = 1f;
                         }
@@ -105,10 +105,10 @@ namespace FrostweepGames.WebGLPUNVoice
                             chunk.AddRange(_buffer.data);
                             _buffer.data.Clear();
 
-                            for (int i = bufferSize; i < Constants.SampleRate; i++)
+                            for (int i = bufferSize; i < Constants.SampleRate * Constants.Channels; i++)
                                 chunk.Add(0);
 
-                            _delay = (float)bufferSize / (float)Constants.SampleRate;
+                            _delay = (float)bufferSize / ((float)Constants.SampleRate * Constants.Channels);
                         }
 
                         _workingClip.SetData(chunk.ToArray(), 0);

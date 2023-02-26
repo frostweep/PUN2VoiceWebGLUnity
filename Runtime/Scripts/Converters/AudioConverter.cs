@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microphone = FrostweepGames.MicrophonePro.Microphone;
 
 namespace FrostweepGames.WebGLPUNVoice
 {
@@ -36,6 +37,26 @@ namespace FrostweepGames.WebGLPUNVoice
             }
 
             return samples;
+        }
+
+        public static float[] InterleaveChannelsDataFromStream(Microphone.StreamData streamData)
+        {
+            int length = 0;
+
+            for (int i = 0; i < streamData.ChannelsData.Count; i++)
+                length += streamData.ChannelsData[i].Length;
+
+            float[] result = new float[length];
+            int index = 0, inputIndex = 0;
+
+            while (index < length)
+            {
+                for (int i = 0; i < streamData.ChannelsData.Count; i++)
+                    result[index++] = streamData.ChannelsData[i][inputIndex];
+                inputIndex++;
+            }
+
+            return result;
         }
     }
 }

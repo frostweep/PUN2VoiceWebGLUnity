@@ -1,9 +1,9 @@
-﻿using FrostweepGames.Plugins.Native;
-using Photon.Pun;
+﻿using Photon.Pun;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using Microphone = FrostweepGames.MicrophonePro.Microphone;
 
 namespace FrostweepGames.WebGLPUNVoice.Examples
 {
@@ -44,12 +44,21 @@ namespace FrostweepGames.WebGLPUNVoice.Examples
             muteRemoteClientsToggle.onValueChanged.AddListener(MuteRemoteClientsToggleValueChanged);
             debugEchoToggle.onValueChanged.AddListener(DebugEchoToggleValueChanged);
             reliableTransmissionToggle.onValueChanged.AddListener(ReliableTransmissionToggleValueChanged);
+            microphonesDropdown.onValueChanged.AddListener(MicrophonesDropdownValueChanged);
 
             _remoteSpeakerItems = new List<RemoteSpeakerItem>();
-
+#if !UNITY_WEBGL || UNITY_EDITOR
             RefreshMicrophonesButtonOnClickHandler();
+#endif
 
             listener.SpeakersUpdatedEvent += SpeakersUpdatedEventHandler;
+
+            Microphone.PermissionChangedEvent += PermissionChangedEventHandler;
+        }
+
+        private void PermissionChangedEventHandler(bool granted)
+        {
+            RefreshMicrophonesButtonOnClickHandler();
         }
 
         private void Update()
@@ -78,10 +87,10 @@ namespace FrostweepGames.WebGLPUNVoice.Examples
 
         private void RefreshMicrophonesButtonOnClickHandler()
         {
-            recorder.RefreshMicrophones();
-
             microphonesDropdown.ClearOptions();
-            microphonesDropdown.AddOptions(CustomMicrophone.devices.ToList());            
+            microphonesDropdown.AddOptions(Microphone.devices.ToList());
+
+            MicrophonesDropdownValueChanged(0);
         }
 
         private void MuteMyClientToggleValueChanged(bool status)
@@ -111,6 +120,11 @@ namespace FrostweepGames.WebGLPUNVoice.Examples
             recorder.reliableTransmission = status;
         }
 
+        private void MicrophonesDropdownValueChanged(int index)
+        {
+            if(index < Microphone.devices.Length)
+                recorder.SetMicrophone(Microphone.devices[index]);
+        }
 
         private class RemoteSpeakerItem
         {

@@ -62,7 +62,7 @@ namespace FrostweepGames.WebGLPUNVoice
 				CleanupCacheOnLeave = false,
 			};
 
-			PhotonNetwork.CreateRoom("VoiceRoom_" + System.DateTime.Now.Ticks, roomOptions);
+			PhotonNetwork.CreateRoom("VoiceRoom_Demo", roomOptions);
 		}
 
 		public void JoinRoom(string roomName = null)

@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
-using FrostweepGames.Plugins.Native;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using Microphone = FrostweepGames.MicrophonePro.Microphone;
 
 namespace FrostweepGames.WebGLPUNVoice
 {
@@ -73,13 +73,20 @@ namespace FrostweepGames.WebGLPUNVoice
 		{
 			_buffer = new List<float>();
 
-			RefreshMicrophones();
-		}
+            Microphone.RecordStreamDataEvent += RecordStreamDataEventHandler;
+            Microphone.PermissionChangedEvent += PermissionChangedEventHandler;
+        }
 
-		/// <summary>
-		/// Handles processing of recording each frame
-		/// </summary>
-		private void Update()
+        private void OnDestroy()
+        {
+            Microphone.RecordStreamDataEvent -= RecordStreamDataEventHandler;
+            Microphone.PermissionChangedEvent -= PermissionChangedEventHandler;
+        }
+
+        /// <summary>
+        /// Handles processing of recording each frame
+        /// </summary>
+        private void Update()
 		{
 			ProcessRecording();
 		}
@@ -89,7 +96,7 @@ namespace FrostweepGames.WebGLPUNVoice
 		/// </summary>
 		private void ProcessRecording()
 		{
-			int currentPosition = CustomMicrophone.GetPosition(_microphoneDevice);
+			int currentPosition = Microphone.GetPosition(_microphoneDevice);
 
 			// fix for end record incorrect position
 			if (_stopRecordPosition != -1)
@@ -97,8 +104,9 @@ namespace FrostweepGames.WebGLPUNVoice
 
 			if (recording || currentPosition != _lastPosition)
 			{
+#if !UNITY_WEBGL || UNITY_EDITOR
 				float[] array = new float[Constants.RecordingTime * Constants.SampleRate];
-				CustomMicrophone.GetRawData(ref array, _workingClip);
+                Microphone.GetData(array, 0);
 
 				if (_lastPosition != currentPosition && array.Length > 0)
 				{
@@ -111,16 +119,18 @@ namespace FrostweepGames.WebGLPUNVoice
 					{
 						_buffer.AddRange(GetChunk(array, _lastPosition, currentPosition - _lastPosition));
 					}
-
+#endif
 					// sends data chunky
 					if (_buffer.Count >= Constants.ChunkSize)
 					{
 						SendDataToNetwork(_buffer.GetRange(0, Constants.ChunkSize));
 						_buffer.RemoveRange(0, Constants.ChunkSize);
 					}
-				}
+#if !UNITY_WEBGL || UNITY_EDITOR
+                }
+#endif
 
-				_lastPosition = currentPosition;
+                _lastPosition = currentPosition;
 			}
 			else
 			{
@@ -177,18 +187,12 @@ namespace FrostweepGames.WebGLPUNVoice
 			Photon.Pun.PhotonNetwork.RaiseEvent(Constants.VoiceEventCode, bytes, raiseEventOptions, sendOptions);
 		}
 
-		/// <summary>
-		/// Requests microphone perission and refreshes list of microphones if WebGL platform
-		/// </summary>
+        /// <summary>
+        /// Requests microphone perission and refreshes list of microphones if WebGL platform
+        /// </summary>
+        [Obsolete("Doesn't refresh native devices anymore. Use SetMicrophone instead")]
 		public void RefreshMicrophones()
 		{
-			CustomMicrophone.RequestMicrophonePermission();
-			CustomMicrophone.RefreshMicrophoneDevices();
-
-			if (CustomMicrophone.HasConnectedMicrophoneDevices())
-			{
-				_microphoneDevice = CustomMicrophone.devices[0];
-			}
 		}
 
 		/// <summary>
@@ -196,9 +200,9 @@ namespace FrostweepGames.WebGLPUNVoice
 		/// </summary>
 		public void StartRecord()
 		{
-			if (CustomMicrophone.IsRecording(_microphoneDevice) || !CustomMicrophone.HasConnectedMicrophoneDevices())
+			if (Microphone.IsRecording(_microphoneDevice) || Microphone.devices.Length == 0 || string.IsNullOrEmpty(_microphoneDevice))
 			{
-				RecordFailedEvent?.Invoke("record already started or no microphone device conencted");
+				RecordFailedEvent?.Invoke("record already started, no microphone device connected or no microphone selected");
 				return;
 			}
 
@@ -208,7 +212,7 @@ namespace FrostweepGames.WebGLPUNVoice
 
 			_buffer?.Clear();
 
-			_workingClip = CustomMicrophone.Start(_microphoneDevice, true, Constants.RecordingTime, Constants.SampleRate);
+			_workingClip = Microphone.Start(_microphoneDevice, true, Constants.RecordingTime, Constants.SampleRate);
 
 			RecordStartedEvent?.Invoke();
 		}
@@ -218,16 +222,16 @@ namespace FrostweepGames.WebGLPUNVoice
 		/// </summary>
 		public void StopRecord()
 		{
-			if (!CustomMicrophone.IsRecording(_microphoneDevice))
+			if (!Microphone.IsRecording(_microphoneDevice))
 				return;
 
 			recording = false;
 
-			if (CustomMicrophone.HasConnectedMicrophoneDevices())
+			if (Microphone.devices.Length > 0)
 			{
-				_stopRecordPosition = CustomMicrophone.GetPosition(_microphoneDevice);
+				_stopRecordPosition = Microphone.GetPosition(_microphoneDevice);
 
-				CustomMicrophone.End(_microphoneDevice);
+                Microphone.End(_microphoneDevice);
 			}
 
 			if (_workingClip != null)
@@ -237,5 +241,39 @@ namespace FrostweepGames.WebGLPUNVoice
 
 			RecordEndedEvent?.Invoke();
 		}
-	}
+
+		/// <summary>
+        /// Set microphone by device name
+        /// </summary>
+        /// <param name="deviceName"></param>
+		public void SetMicrophone(string deviceName)
+        {
+			_microphoneDevice = deviceName;
+        }
+
+        /// <summary>
+        /// Fill buffer from stream data from native WebGL
+        /// </summary>
+        /// <param name="streamData"></param>
+        private void RecordStreamDataEventHandler(Microphone.StreamData streamData)
+        {
+            _buffer.AddRange(AudioConverter.InterleaveChannelsDataFromStream(streamData));
+        }
+
+		/// <summary>
+        /// Handles changes in native permissions of microphon
+        /// </summary>
+        /// <param name="granted"></param>
+        private void PermissionChangedEventHandler(bool granted)
+        {
+            if (granted && Microphone.devices.Length > 0 && string.IsNullOrEmpty(_microphoneDevice))
+            {
+                SetMicrophone(Microphone.devices[0]);
+            }
+            else
+            {
+                SetMicrophone(null);
+            }
+        }
+    }
 }
